@@ -1,0 +1,12 @@
+{
+  "domain": "asustor_snmp",
+  "name": "ASUSTOR NAS (SNMP)",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://www.asustor.com/en/online/College_topic?topic=271",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "loggers": ["pysnmp"],
+  "requirements": ["pysnmp==7.1.27"],
+  "version": "1.0.0"
+}

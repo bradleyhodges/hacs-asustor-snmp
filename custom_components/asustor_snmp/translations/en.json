@@ -1,0 +1,91 @@
+{
+  "title": "ASUSTOR NAS (SNMP)",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to ASUSTOR NAS",
+        "description": "Enable SNMP in ADM first. For the confirmed ADM configuration, select version 3, authNoPriv and MD5. Passphrases must be at least eight characters. On reconfiguration, leave a secret blank to retain its current value.",
+        "data": {
+          "name": "Device name",
+          "host": "Host or IP address",
+          "port": "SNMP port",
+          "version": "SNMP version",
+          "username": "SNMPv3 username",
+          "security_level": "Security level",
+          "auth_protocol": "Authentication protocol",
+          "auth_key": "Authentication passphrase",
+          "priv_protocol": "Privacy protocol",
+          "priv_key": "Privacy passphrase",
+          "community": "SNMPv2c community",
+          "context_name": "SNMP context name"
+        }
+      },
+      "reconfigure": {
+        "title": "Connect to ASUSTOR NAS",
+        "description": "Enable SNMP in ADM first. For the confirmed ADM configuration, select version 3, authNoPriv and MD5. Passphrases must be at least eight characters. On reconfiguration, leave a secret blank to retain its current value.",
+        "data": {
+          "name": "Device name",
+          "host": "Host or IP address",
+          "port": "SNMP port",
+          "version": "SNMP version",
+          "username": "SNMPv3 username",
+          "security_level": "Security level",
+          "auth_protocol": "Authentication protocol",
+          "auth_key": "Authentication passphrase",
+          "priv_protocol": "Privacy protocol",
+          "priv_key": "Privacy passphrase",
+          "community": "SNMPv2c community",
+          "context_name": "SNMP context name"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Connect to ASUSTOR NAS",
+        "description": "Enable SNMP in ADM first. For the confirmed ADM configuration, select version 3, authNoPriv and MD5. Passphrases must be at least eight characters. On reconfiguration, leave a secret blank to retain its current value.",
+        "data": {
+          "name": "Device name",
+          "host": "Host or IP address",
+          "port": "SNMP port",
+          "version": "SNMP version",
+          "username": "SNMPv3 username",
+          "security_level": "Security level",
+          "auth_protocol": "Authentication protocol",
+          "auth_key": "Authentication passphrase",
+          "priv_protocol": "Privacy protocol",
+          "priv_key": "Privacy passphrase",
+          "community": "SNMPv2c community",
+          "context_name": "SNMP context name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot communicate with the NAS. Check the host, UDP port 161, routing and SNMP settings.",
+      "invalid_auth": "The NAS rejected the credentials or security level. Check username, passphrases, authentication and privacy protocols.",
+      "not_asustor": "The host did not expose an ASUSTOR serial number and model. Check the SNMP view and host.",
+      "invalid_host": "Enter a hostname or IP address without a URL, path or port.",
+      "invalid_config": "Check name, username and required passphrases (minimum eight characters). SNMP text fields must use Latin-1 characters; usernames and context names may contain at most 32 bytes."
+    },
+    "abort": {
+      "already_configured": "This NAS is already configured.",
+      "wrong_device": "The serial number does not match the configured NAS.",
+      "reauth_successful": "SNMP credentials updated.",
+      "reconfigure_successful": "NAS connection updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Monitoring options",
+        "description": "Storage defaults to GiB and memory to MiB, consistent with the supplied NAS readings. The vendor MIB is ambiguous about these units. Enable UPS monitoring only when a UPS is connected; unidentified UPS rows are ignored.",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "timeout": "Per-request timeout (seconds)",
+          "retries": "Request retries",
+          "include_virtual": "Include virtual network interfaces",
+          "enable_ups": "Enable UPS monitoring",
+          "storage_unit": "Vendor storage capacity unit",
+          "memory_unit": "Vendor memory capacity unit"
+        }
+      }
+    }
+  }
+}

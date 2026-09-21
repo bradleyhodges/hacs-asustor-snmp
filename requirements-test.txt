@@ -1,0 +1,6 @@
+homeassistant==2026.9.2
+pysnmp==7.1.27
+pytest-homeassistant-custom-component==0.13.365
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+ruff==0.16.8
