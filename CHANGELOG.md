@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Improve integration documentation
+- Move non-default SNMPv3 options to Advanced section of integration initial setup flow (SNMP version, port, security level, auth protocol, privacy protocol, SNMPv2 community, and context name)
+- Add integration branding
+- Remove unused docs directory
+
 ## 1.0.0
 
 - Initial read-only ASUSTOR SNMP integration with UI setup, reconfiguration,
