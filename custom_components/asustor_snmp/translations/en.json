@@ -9,7 +9,7 @@
           "name": "Device name",
           "host": "Host or IP address",
           "username": "SNMPv3 username",
-          "auth_key": "Authentication passphrase"
+          "auth_key": "SNMPv3 password"
         },
         "sections": {
           "advanced": {
@@ -34,7 +34,7 @@
           "name": "Device name",
           "host": "Host or IP address",
           "username": "SNMPv3 username",
-          "auth_key": "Authentication passphrase"
+          "auth_key": "SNMPv3 password"
         },
         "sections": {
           "advanced": {
@@ -59,7 +59,7 @@
           "name": "Device name",
           "host": "Host or IP address",
           "username": "SNMPv3 username",
-          "auth_key": "Authentication passphrase"
+          "auth_key": "SNMPv3 password"
         },
         "sections": {
           "advanced": {
