@@ -1,9 +1,12 @@
 {
   "domain": "asustor_snmp",
   "name": "ASUSTOR NAS (SNMP)",
-  "codeowners": [],
+  "codeowners": [
+    "@bradleyhodges"
+  ],
   "config_flow": true,
-  "documentation": "https://www.asustor.com/en/online/College_topic?topic=271",
+  "documentation": "https://github.com/bradleyhodges/hacs-asustor-snmp/blob/main/README.md",
+  "issue_tracker": "https://github.com/bradleyhodges/hacs-asustor-snmp/issues",
   "integration_type": "device",
   "iot_class": "local_polling",
   "loggers": ["pysnmp"],
