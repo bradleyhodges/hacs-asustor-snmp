@@ -26,6 +26,7 @@ CONFIG = {
     "context_name": "",
 }
 ADVANCED_FIELDS = {
+    "port",
     "version",
     "security_level",
     "auth_protocol",
@@ -53,7 +54,7 @@ async def test_connection_form_groups_advanced_fields(hass, source):
         data=CONFIG if source == "reauth" else None,
     )
     schema = form["data_schema"].schema
-    assert set(schema) == {"name", "host", "port", "username", "auth_key", "advanced"}
+    assert set(schema) == {"name", "host", "username", "auth_key", "advanced"}
     advanced = custom_serializer(schema["advanced"])
     assert advanced["type"] == "expandable"
     assert advanced["expanded"] is False
@@ -81,6 +82,7 @@ async def test_ui_setup_validates_identity(hass):
     "credentials, expected",
     [
         ({}, CONFIG),
+        ({"advanced": {"port": 1161}}, CONFIG | {"port": 1161}),
         (
             {"advanced": {"version": "2c", "community": "testing-community"}},
             {key: value for key, value in CONFIG.items() if key not in {"username", "auth_key"}}
@@ -104,7 +106,7 @@ async def test_ui_setup_validates_identity(hass):
             },
         ),
     ],
-    ids=["collapsed-defaults", "snmpv2c", "snmpv3-privacy"],
+    ids=["collapsed-defaults", "custom-port", "snmpv2c", "snmpv3-privacy"],
 )
 async def test_advanced_settings_are_saved_in_flat_entry(hass, credentials, expected):
     with (
@@ -276,7 +278,7 @@ async def test_reconfigure_preserves_blank_password_and_rejects_different_nas(ha
     ],
 )
 async def test_reconfigure_preserves_blank_advanced_secrets(hass, credentials):
-    config = CONFIG | credentials
+    config = CONFIG | credentials | {"port": 1161}
     if config["version"] == "2c":
         config.pop("username")
         config.pop("auth_key")

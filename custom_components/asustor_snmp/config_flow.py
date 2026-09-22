@@ -35,12 +35,14 @@ def connection_schema(defaults: Mapping) -> vol.Schema:
         {
             vol.Required("name", default=defaults.get("name", "ASUSTOR NAS")): str,
             vol.Required("host", default=defaults.get("host", "")): str,
-            optional("port", 161): vol.All(vol.Coerce(int), vol.Range(min=1, max=65535)),
             optional("username", ""): str,
             vol.Optional("auth_key"): PASSWORD,
             vol.Required("advanced", default=dict): section(
                 vol.Schema(
                     {
+                        optional("port", 161): vol.All(
+                            vol.Coerce(int), vol.Range(min=1, max=65535)
+                        ),
                         optional("version", "3"): vol.In(["3", "2c"]),
                         optional("security_level", "authNoPriv"): vol.In(
                             ["authNoPriv", "authPriv", "noAuthNoPriv"]
