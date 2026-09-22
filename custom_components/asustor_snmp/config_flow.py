@@ -7,6 +7,7 @@ from collections.abc import Mapping
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
 
 from .const import DEFAULT_OPTIONS, DOMAIN, SERIAL_OID
@@ -35,17 +36,24 @@ def connection_schema(defaults: Mapping) -> vol.Schema:
             vol.Required("name", default=defaults.get("name", "ASUSTOR NAS")): str,
             vol.Required("host", default=defaults.get("host", "")): str,
             optional("port", 161): vol.All(vol.Coerce(int), vol.Range(min=1, max=65535)),
-            optional("version", "3"): vol.In(["3", "2c"]),
             optional("username", ""): str,
-            optional("security_level", "authNoPriv"): vol.In(
-                ["authNoPriv", "authPriv", "noAuthNoPriv"]
-            ),
-            optional("auth_protocol", "MD5"): vol.In(list(AUTH_PROTOCOLS)),
             vol.Optional("auth_key"): PASSWORD,
-            optional("priv_protocol", "AES"): vol.In(list(PRIV_PROTOCOLS)),
-            vol.Optional("priv_key"): PASSWORD,
-            vol.Optional("community"): PASSWORD,
-            optional("context_name", ""): str,
+            vol.Required("advanced", default=dict): section(
+                vol.Schema(
+                    {
+                        optional("version", "3"): vol.In(["3", "2c"]),
+                        optional("security_level", "authNoPriv"): vol.In(
+                            ["authNoPriv", "authPriv", "noAuthNoPriv"]
+                        ),
+                        optional("auth_protocol", "MD5"): vol.In(list(AUTH_PROTOCOLS)),
+                        optional("priv_protocol", "AES"): vol.In(list(PRIV_PROTOCOLS)),
+                        vol.Optional("priv_key"): PASSWORD,
+                        vol.Optional("community"): PASSWORD,
+                        optional("context_name", ""): str,
+                    }
+                ),
+                {"collapsed": True},
+            ),
         }
     )
 
@@ -121,6 +129,9 @@ class AsustorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         defaults = dict(entry.data) if entry else {}
         errors = {}
         if user_input is not None:
+            # Sections nest form input; keep the existing flat config entry format.
+            user_input = dict(user_input)
+            user_input.update(user_input.pop("advanced", {}))
             defaults.update({k: v for k, v in user_input.items() if k not in SECRETS})
             client = None
             try:

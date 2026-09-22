@@ -7,6 +7,7 @@ from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.config_validation import custom_serializer
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.asustor_snmp.const import DOMAIN, MODEL_OID, SERIAL_OID, VENDOR
@@ -24,6 +25,39 @@ CONFIG = {
     "priv_protocol": "AES",
     "context_name": "",
 }
+ADVANCED_FIELDS = {
+    "version",
+    "security_level",
+    "auth_protocol",
+    "priv_protocol",
+    "priv_key",
+    "community",
+    "context_name",
+}
+
+
+def form_input(config):
+    """Submit the nested UI payload while stored entries remain flat."""
+    return {key: value for key, value in config.items() if key not in ADVANCED_FIELDS} | {
+        "advanced": {key: value for key, value in config.items() if key in ADVANCED_FIELDS}
+    }
+
+
+@pytest.mark.parametrize("source", [SOURCE_USER, "reconfigure", "reauth"])
+async def test_connection_form_groups_advanced_fields(hass, source):
+    entry = MockConfigEntry(domain=DOMAIN, data=CONFIG, unique_id="TEST-NAS-001")
+    entry.add_to_hass(hass)
+    form = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": source, "entry_id": entry.entry_id},
+        data=CONFIG if source == "reauth" else None,
+    )
+    schema = form["data_schema"].schema
+    assert set(schema) == {"name", "host", "port", "username", "auth_key", "advanced"}
+    advanced = custom_serializer(schema["advanced"])
+    assert advanced["type"] == "expandable"
+    assert advanced["expanded"] is False
+    assert {field["name"] for field in advanced["schema"]} == ADVANCED_FIELDS
 
 
 async def test_ui_setup_validates_identity(hass):
@@ -36,10 +70,56 @@ async def test_ui_setup_validates_identity(hass):
     ):
         form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
         assert form["type"] is FlowResultType.FORM
-        result = await hass.config_entries.flow.async_configure(form["flow_id"], CONFIG)
+        result = await hass.config_entries.flow.async_configure(form["flow_id"], form_input(CONFIG))
         assert result["type"] is FlowResultType.CREATE_ENTRY
         assert result["result"].unique_id == "TEST-NAS-001"
         assert result["data"]["auth_key"] == "testpass123"
+        assert result["data"] == CONFIG
+
+
+@pytest.mark.parametrize(
+    "credentials, expected",
+    [
+        ({}, CONFIG),
+        (
+            {"advanced": {"version": "2c", "community": "testing-community"}},
+            {key: value for key, value in CONFIG.items() if key not in {"username", "auth_key"}}
+            | {"version": "2c", "community": "testing-community"},
+        ),
+        (
+            {
+                "advanced": {
+                    "security_level": "authPriv",
+                    "auth_protocol": "SHA",
+                    "priv_key": "private123",
+                    "context_name": "nas-context",
+                }
+            },
+            CONFIG
+            | {
+                "security_level": "authPriv",
+                "auth_protocol": "SHA",
+                "priv_key": "private123",
+                "context_name": "nas-context",
+            },
+        ),
+    ],
+    ids=["collapsed-defaults", "snmpv2c", "snmpv3-privacy"],
+)
+async def test_advanced_settings_are_saved_in_flat_entry(hass, credentials, expected):
+    with (
+        patch("custom_components.asustor_snmp.config_flow.SnmpClient") as client,
+        patch("custom_components.asustor_snmp.async_setup_entry", return_value=True),
+    ):
+        client.return_value.async_probe = AsyncMock(return_value={SERIAL_OID: b"TEST-NAS-001"})
+        form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        basic = {key: CONFIG[key] for key in ("name", "host", "username", "auth_key")}
+        result = await hass.config_entries.flow.async_configure(
+            form["flow_id"], basic | credentials
+        )
+        assert result["type"] is FlowResultType.CREATE_ENTRY
+        assert result["data"] == expected
+        client.assert_called_once_with(expected, {})
 
 
 @pytest.mark.parametrize(
@@ -52,8 +132,28 @@ async def test_flow_shows_actionable_error(hass, error, code):
         new=AsyncMock(side_effect=error),
     ):
         form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
-        result = await hass.config_entries.flow.async_configure(form["flow_id"], CONFIG)
+        result = await hass.config_entries.flow.async_configure(form["flow_id"], form_input(CONFIG))
         assert result["errors"] == {"base": code}
+
+
+async def test_error_form_preserves_advanced_choices_without_secrets(hass):
+    config = CONFIG | {
+        "security_level": "authPriv",
+        "auth_protocol": "SHA",
+        "priv_protocol": "DES",
+        "priv_key": "private123",
+        "context_name": "nas-context",
+    }
+    with patch(
+        "custom_components.asustor_snmp.config_flow.SnmpClient.async_probe",
+        new=AsyncMock(side_effect=SnmpError("offline")),
+    ):
+        form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+        result = await hass.config_entries.flow.async_configure(form["flow_id"], form_input(config))
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert result["data_schema"]({}) == form_input(
+        {key: value for key, value in config.items() if key not in {"auth_key", "priv_key"}}
+    )
 
 
 async def test_duplicate_serial_is_rejected(hass):
@@ -63,7 +163,7 @@ async def test_duplicate_serial_is_rejected(hass):
         new=AsyncMock(return_value={SERIAL_OID: b"TEST-NAS-001", MODEL_OID: b"AS3A02T"}),
     ):
         form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
-        result = await hass.config_entries.flow.async_configure(form["flow_id"], CONFIG)
+        result = await hass.config_entries.flow.async_configure(form["flow_id"], form_input(CONFIG))
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "already_configured"
 
@@ -162,10 +262,44 @@ async def test_reconfigure_preserves_blank_password_and_rejects_different_nas(ha
             DOMAIN, context={"source": "reconfigure", "entry_id": entry.entry_id}
         )
         result = await hass.config_entries.flow.async_configure(
-            form["flow_id"], CONFIG | {"auth_key": ""}
+            form["flow_id"], form_input(CONFIG | {"auth_key": ""})
         )
         assert result["reason"] == "wrong_device"
         assert entry.data["auth_key"] == "testpass123"
+
+
+@pytest.mark.parametrize(
+    "credentials",
+    [
+        {"security_level": "authPriv", "priv_key": "private123"},
+        {"version": "2c", "community": "testing-community"},
+    ],
+)
+async def test_reconfigure_preserves_blank_advanced_secrets(hass, credentials):
+    config = CONFIG | credentials
+    if config["version"] == "2c":
+        config.pop("username")
+        config.pop("auth_key")
+    entry = MockConfigEntry(domain=DOMAIN, data=config, unique_id="TEST-NAS-001")
+    entry.add_to_hass(hass)
+    with (
+        patch("custom_components.asustor_snmp.config_flow.SnmpClient") as client,
+        patch("homeassistant.config_entries.ConfigEntries.async_reload", return_value=True),
+    ):
+        client.return_value.async_probe = AsyncMock(return_value={SERIAL_OID: b"TEST-NAS-001"})
+        form = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": "reconfigure", "entry_id": entry.entry_id}
+        )
+        defaults = form["data_schema"]({})
+        assert not {"priv_key", "community"} & defaults["advanced"].keys()
+        assert "auth_key" not in defaults
+        # Keep Advanced collapsed; its non-secret defaults must retain stored settings.
+        result = await hass.config_entries.flow.async_configure(
+            form["flow_id"], {"host": "192.0.2.2", "auth_key": ""}
+        )
+        assert result["reason"] == "reconfigure_successful"
+        assert entry.data == config | {"host": "192.0.2.2"}
+        client.assert_called_once_with(dict(entry.data), {})
 
 
 async def test_reauthentication_updates_secret_and_reloads(hass):
@@ -185,7 +319,7 @@ async def test_reauthentication_updates_secret_and_reloads(hass):
             DOMAIN, context={"source": "reauth", "entry_id": entry.entry_id}, data=CONFIG
         )
         result = await hass.config_entries.flow.async_configure(
-            form["flow_id"], CONFIG | {"auth_key": "new-testing-password"}
+            form["flow_id"], form_input(CONFIG | {"auth_key": "new-testing-password"})
         )
         await hass.async_block_till_done()
         assert result["reason"] == "reauth_successful"
@@ -235,7 +369,7 @@ async def test_unsupported_credential_encoding_returns_form_error(hass):
     form = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     with patch("custom_components.asustor_snmp.config_flow.SnmpClient.async_probe") as probe:
         result = await hass.config_entries.flow.async_configure(
-            form["flow_id"], CONFIG | {"auth_key": "testing🔒password"}
+            form["flow_id"], form_input(CONFIG | {"auth_key": "testing🔒password"})
         )
         assert result["errors"] == {"base": "invalid_config"}
         probe.assert_not_called()

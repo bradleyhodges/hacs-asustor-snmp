@@ -9,15 +9,22 @@
           "name": "Device name",
           "host": "Host or IP address",
           "port": "SNMP port",
-          "version": "SNMP version",
           "username": "SNMPv3 username",
-          "security_level": "Security level",
-          "auth_protocol": "Authentication protocol",
-          "auth_key": "Authentication passphrase",
-          "priv_protocol": "Privacy protocol",
-          "priv_key": "Privacy passphrase",
-          "community": "SNMPv2c community",
-          "context_name": "SNMP context name"
+          "auth_key": "Authentication passphrase"
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "version": "SNMP version",
+              "security_level": "Security level",
+              "auth_protocol": "Authentication protocol",
+              "priv_protocol": "Privacy protocol",
+              "priv_key": "Privacy passphrase",
+              "community": "SNMPv2c community",
+              "context_name": "SNMP context name"
+            }
+          }
         }
       },
       "reconfigure": {
@@ -27,15 +34,22 @@
           "name": "Device name",
           "host": "Host or IP address",
           "port": "SNMP port",
-          "version": "SNMP version",
           "username": "SNMPv3 username",
-          "security_level": "Security level",
-          "auth_protocol": "Authentication protocol",
-          "auth_key": "Authentication passphrase",
-          "priv_protocol": "Privacy protocol",
-          "priv_key": "Privacy passphrase",
-          "community": "SNMPv2c community",
-          "context_name": "SNMP context name"
+          "auth_key": "Authentication passphrase"
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "version": "SNMP version",
+              "security_level": "Security level",
+              "auth_protocol": "Authentication protocol",
+              "priv_protocol": "Privacy protocol",
+              "priv_key": "Privacy passphrase",
+              "community": "SNMPv2c community",
+              "context_name": "SNMP context name"
+            }
+          }
         }
       },
       "reauth_confirm": {
@@ -45,15 +59,22 @@
           "name": "Device name",
           "host": "Host or IP address",
           "port": "SNMP port",
-          "version": "SNMP version",
           "username": "SNMPv3 username",
-          "security_level": "Security level",
-          "auth_protocol": "Authentication protocol",
-          "auth_key": "Authentication passphrase",
-          "priv_protocol": "Privacy protocol",
-          "priv_key": "Privacy passphrase",
-          "community": "SNMPv2c community",
-          "context_name": "SNMP context name"
+          "auth_key": "Authentication passphrase"
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "version": "SNMP version",
+              "security_level": "Security level",
+              "auth_protocol": "Authentication protocol",
+              "priv_protocol": "Privacy protocol",
+              "priv_key": "Privacy passphrase",
+              "community": "SNMPv2c community",
+              "context_name": "SNMP context name"
+            }
+          }
         }
       }
     },
