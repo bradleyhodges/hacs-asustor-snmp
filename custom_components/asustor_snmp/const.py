@@ -1,7 +1,7 @@
 """Integration constants and documented numeric OIDs."""
 
 DOMAIN = "asustor_snmp"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 VENDOR = "1.3.6.1.4.1.44738"
 IF_TABLE = "1.3.6.1.2.1.2.2.1"
 IFX_TABLE = "1.3.6.1.2.1.31.1.1.1"

@@ -55,12 +55,12 @@
 
 You can optionally choose to install the integration manually:
 
-1. Download `ASUSTOR-SNMP-1.0.0.zip` to the **machine running Home Assistant**.
+1. Download `ASUSTOR-SNMP-1.1.0.zip` to the **machine running Home Assistant**.
     Extract it:
 
     ```bash
-    unzip ASUSTOR-SNMP-1.0.0.zip -d asustor-snmp-1.0.0
-    cd asustor-snmp-1.0.0
+    unzip ASUSTOR-SNMP-1.1.0.zip -d asustor-snmp-1.1.0
+    cd asustor-snmp-1.1.0
     ```
 
 2. Check the container name and locate its configuration directory:
